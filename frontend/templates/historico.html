@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico de Processamentos{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Histórico de Processamentos
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if resultados %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Período</th>
+                                    <th class="text-center">XMLs</th>
+                                    <th class="text-end">Crédito Total</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for resultado in resultados %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-calendar-day me-2 text-muted"></i>
+                                        {{ resultado.data_processamento.strftime('%d/%m/%Y %H:%M') }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ resultado.periodo }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-secondary">{{ resultado.qtd_xmls }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="text-success fw-bold">
+                                            {{ "R$ {:,.2f}".format(resultado.credito_total) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="{{ url_for('dashboard', session_id=resultado.session_id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>Visualizar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum processamento encontrado</h5>
+                        <p class="text-muted">Faça o upload de arquivos para começar</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Fazer Upload
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

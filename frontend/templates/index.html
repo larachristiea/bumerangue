@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Motor de Notas - Upload de Arquivos{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-5">
+            <div class="card border-0 bg-transparent">
+                <div class="card-body">
+                    <i class="fas fa-file-upload fa-4x text-primary mb-3"></i>
+                    <h1 class="h2 mb-3">🚀 Motor de Notas Fiscal</h1>
+                    <p class="lead text-muted">
+                        Sistema automatizado para análise de XMLs de NFe e cálculo de créditos tributários PIS/COFINS
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-cloud-upload-alt me-2"></i>
+                    Upload de Arquivos
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('upload_files') }}" method="post" enctype="multipart/form-data" id="uploadForm">
+                    <!-- Período -->
+                    <div class="mb-4">
+                        <label for="periodo" class="form-label">
+                            <i class="fas fa-calendar me-2"></i>Período de Referência
+                        </label>
+                        <input type="month" class="form-control" id="periodo" name="periodo" 
+                               value="{{ current_month }}" required>
+                        <div class="form-text">Selecione o mês/ano de referência dos documentos</div>
+                    </div>
+
+                    <!-- Upload XML ZIP -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-file-archive me-2"></i>Arquivo ZIP com XMLs das NFe
+                        </label>
+                        <div class="upload-area" onclick="document.getElementById('xml_zip').click()">
+                            <i class="fas fa-file-archive fa-3x text-primary mb-3"></i>
+                            <h5>Clique ou arraste o arquivo ZIP</h5>
+                            <p class="text-muted mb-0">Arquivo ZIP contendo todos os XMLs de NFe do período</p>
+                            <span class="file-label text-muted d-block mt-2">Nenhum arquivo selecionado</span>
+                        </div>
+                        <input type="file" class="d-none" id="xml_zip" name="xml_zip" 
+                               accept=".zip" required>
+                    </div>
+
+                    <!-- Upload PGDAS PDF -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fas fa-file-pdf me-2"></i>Arquivo PGDAS (PDF)
+                        </label>
+                        <div class="upload-area" onclick="document.getElementById('pgdas_pdf').click()">
+                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                            <h5>Clique ou arraste o arquivo PDF</h5>
+                            <p class="text-muted mb-0">PGDAS referente ao mesmo período dos XMLs</p>
+                            <span class="file-label text-muted d-block mt-2">Nenhum arquivo selecionado</span>
+                        </div>
+                        <input type="file" class="d-none" id="pgdas_pdf" name="pgdas_pdf" 
+                               accept=".pdf" required>
+                    </div>
+
+                    <!-- Instruções -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Instruções importantes:</h6>
+                        <ul class="mb-0">
+                            <li>📦 <strong>ZIP de XMLs:</strong> Todos os XMLs de NFe devem estar em um único arquivo ZIP</li>
+                            <li>📄 <strong>PGDAS PDF:</strong> Documento do mesmo período dos XMLs para cálculo de alíquotas</li>
+                            <li>📅 <strong>Período:</strong> Certifique-se de que todos os documentos são do mesmo mês/ano</li>
+                            <li>💾 <strong>Tamanho:</strong> Limite máximo de 500MB por arquivo</li>
+                        </ul>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                            <i class="fas fa-play me-2"></i>
+                            Processar Arquivos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="row mt-5">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-robot fa-2x text-success mb-3"></i>
+                        <h5>Processamento Automático</h5>
+                        <p class="text-muted">Análise inteligente de XMLs com classificação automática de produtos monofásicos</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-calculator fa-2x text-warning mb-3"></i>
+                        <h5>Cálculo de Créditos</h5>
+                        <p class="text-muted">Cálculo preciso de créditos PIS/COFINS com base na legislação vigente</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 text-center">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
+                        <h5>Dashboard Interativo</h5>
+                        <p class="text-muted">Visualizações gráficas e relatórios detalhados dos resultados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar período padrão (mês atual)
+    const now = new Date();
+    const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    document.getElementById('periodo').value = currentMonth;
+    
+    // Configurar eventos de upload
+    setupFileInputs();
+    
+    // Configurar formulário
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        const xmlFile = document.getElementById('xml_zip').files[0];
+        const pgdasFile = document.getElementById('pgdas_pdf').files[0];
+        
+        if (!xmlFile || !pgdasFile) {
+            e.preventDefault();
+            alert('Por favor, selecione ambos os arquivos antes de continuar.');
+            return;
+        }
+        
+        // Mostrar loading
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+        
+        // Simular progresso
+        let progress = 0;
+        const interval = setInterval(function() {
+            progress += Math.random() * 10;
+            if (progress > 90) {
+                clearInterval(interval);
+                progress = 90;
+            }
+            // Aqui você poderia atualizar uma barra de progresso
+        }, 500);
+    });
+});
+
+function setupFileInputs() {
+    // XML ZIP Input
+    document.getElementById('xml_zip').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const label = document.querySelector('#xml_zip').closest('.upload-area').querySelector('.file-label');
+        
+        if (file) {
+            label.textContent = `Arquivo selecionado: ${file.name} (${formatFileSize(file.size)})`;
+            label.classList.add('text-success');
+            
+            // Validar tipo de arquivo
+            if (!file.name.toLowerCase().endsWith('.zip')) {
+                label.textContent = 'Erro: Apenas arquivos ZIP são aceitos';
+                label.classList.remove('text-success');
+                label.classList.add('text-danger');
+                e.target.value = '';
+            }
+        }
+    });
+    
+    // PGDAS PDF Input
+    document.getElementById('pgdas_pdf').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        const label = document.querySelector('#pgdas_pdf').closest('.upload-area').querySelector('.file-label');
+        
+        if (file) {
+            label.textContent = `Arquivo selecionado: ${file.name} (${formatFileSize(file.size)})`;
+            label.classList.add('text-success');
+            
+            // Validar tipo de arquivo
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                label.textContent = 'Erro: Apenas arquivos PDF são aceitos';
+                label.classList.remove('text-success');
+                label.classList.add('text-danger');
+                e.target.value = '';
+            }
+        }
+    });
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Drag and Drop functionality
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    document.addEventListener(eventName, preventDefaults, false);
+});
+
+function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+}
+
+// Highlight drop area when item is dragged over it
+['dragenter', 'dragover'].forEach(eventName => {
+    document.addEventListener(eventName, highlight, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    document.addEventListener(eventName, unhighlight, false);
+});
+
+function highlight(e) {
+    if (e.target.closest('.upload-area')) {
+        e.target.closest('.upload-area').classList.add('dragover');
+    }
+}
+
+function unhighlight(e) {
+    if (e.target.closest('.upload-area')) {
+        e.target.closest('.upload-area').classList.remove('dragover');
+    }
+}
+
+// Handle dropped files
+document.addEventListener('drop', handleDrop, false);
+
+function handleDrop(e) {
+    const uploadArea = e.target.closest('.upload-area');
+    if (!uploadArea) return;
+    
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    
+    if (files.length > 0) {
+        const fileInput = uploadArea.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.files = files;
+            // Disparar evento de mudança
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+}
+</script>
+{% endblock %}

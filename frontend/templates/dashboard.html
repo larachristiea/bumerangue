@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Resultados{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Header -->
+    <div class="col-12 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="mb-2">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Dashboard de Análise Fiscal
+                        </h2>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar me-1"></i>Período: {{ dados.periodo }}
+                            <span class="ms-3">
+                                <i class="fas fa-file me-1"></i>{{ dados.arquivos.qtd_xmls }} XMLs processados
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="btn-group">
+                            <button class="btn btn-light" onclick="window.print()">
+                                <i class="fas fa-print me-1"></i>Imprimir
+                            </button>
+                            <button class="btn btn-light" onclick="exportarDados()">
+                                <i class="fas fa-download me-1"></i>Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Métricas Principais -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-money-bill-wave fa-2x text-success mb-3"></i>
+                <h6 class="text-muted">Crédito Total</h6>
+                <div class="metric-value currency" data-value="{{ resultados.creditos.total }}">
+                    {{ "R$ {:,.2f}".format(resultados.creditos.total) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-percentage fa-2x text-primary mb-3"></i>
+                <h6 class="text-muted">Proporção Monofásico</h6>
+                <div class="metric-value percentage" data-value="{{ resultados.proporcao_monofasico }}">
+                    {{ "{:.2f}%".format(resultados.proporcao_monofasico) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-bar fa-2x text-warning mb-3"></i>
+                <h6 class="text-muted">Alíquota Efetiva</h6>
+                <div class="metric-value percentage" data-value="{{ resultados.aliquotas.aliquota_apurada * 100 }}">
+                    {{ "{:.4f}%".format(resultados.aliquotas.aliquota_apurada * 100) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-file-invoice fa-2x text-info mb-3"></i>
+                <h6 class="text-muted">Notas Processadas</h6>
+                <div class="metric-value" data-value="{{ resultados.estatisticas.qtd_notas }}">
+                    {{ resultados.estatisticas.qtd_notas }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-pie-chart me-2"></i>
+                    Distribuição por Tipo de Produto
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="pieChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bar-chart me-2"></i>
+                    Comparativo: Recolhido vs Devido
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="barChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela Detalhada -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-table me-2"></i>
+                    Resumo Detalhado dos Cálculos
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Descrição</th>
+                                <th class="text-end">PIS</th>
+                                <th class="text-end">COFINS</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Tributos Recolhidos</strong></td>
+                                <td class="text-end">{{ "R$ {:,.2f}".format(resultados.tributos_recolhidos.pis) }}</td>
+                                <td class="text-end">{{ "R$ {:,.2f}".format(resultados.tributos_recolhidos.cofins) }}</td>
+                                <td class="text-end"><strong>{{ "R$ {:,.2f}".format(resultados.tributos_recolhidos.pis + resultados.tributos_recolhidos.cofins) }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tributos Devidos (sobre não-monofásicos)</strong></td>
+                                <td class="text-end">{{ "R$ {:,.2f}".format(resultados.tributos_devidos.pis) }}</td>
+                                <td class="text-end">{{ "R$ {:,.2f}".format(resultados.tributos_devidos.cofins) }}</td>
+                                <td class="text-end"><strong>{{ "R$ {:,.2f}".format(resultados.tributos_devidos.pis + resultados.tributos_devidos.cofins) }}</strong></td>
+                            </tr>
+                            <tr class="table-success">
+                                <td><strong>Créditos Tributários</strong></td>
+                                <td class="text-end"><strong>{{ "R$ {:,.2f}".format(resultados.creditos.pis) }}</strong></td>
+                                <td class="text-end"><strong>{{ "R$ {:,.2f}".format(resultados.creditos.cofins) }}</strong></td>
+                                <td class="text-end"><strong>{{ "R$ {:,.2f}".format(resultados.creditos.total) }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configurar gráfico de pizza
+const pieCtx = document.getElementById('pieChart').getContext('2d');
+new Chart(pieCtx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Produtos Monofásicos', 'Produtos Não-monofásicos'],
+        datasets: [{
+            data: [{{ resultados.total_monofasico }}, {{ resultados.total_nao_monofasico }}],
+            backgroundColor: ['#ff6b6b', '#4ecdc4'],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+// Configurar gráfico de barras
+const barCtx = document.getElementById('barChart').getContext('2d');
+new Chart(barCtx, {
+    type: 'bar',
+    data: {
+        labels: ['PIS', 'COFINS'],
+        datasets: [{
+            label: 'Recolhido',
+            data: [{{ resultados.tributos_recolhidos.pis }}, {{ resultados.tributos_recolhidos.cofins }}],
+            backgroundColor: '#45b7d1',
+            borderColor: '#3498db',
+            borderWidth: 1
+        }, {
+            label: 'Devido',
+            data: [{{ resultados.tributos_devidos.pis }}, {{ resultados.tributos_devidos.cofins }}],
+            backgroundColor: '#96ceb4',
+            borderColor: '#27ae60',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return 'R$ ' + value.toLocaleString('pt-BR');
+                    }
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: 'top'
+            }
+        }
+    }
+});
+
+function exportarDados() {
+    const dados = {
+        periodo: '{{ dados.periodo }}',
+        resultados: {{ resultados | tojsonfilter | safe }}
+    };
+    
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dados, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "analise_fiscal_{{ dados.periodo }}.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+</script>
+{% endblock %}

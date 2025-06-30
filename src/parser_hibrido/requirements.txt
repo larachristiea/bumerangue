@@ -1,0 +1,31 @@
+# Dependências do Parser Híbrido de NFe
+# Instalação: pip install -r requirements.txt
+
+# Processamento XML (obrigatório)
+lxml>=4.6.0
+
+# Manipulação de datas
+python-dateutil>=2.8.0
+
+# Detecção automática de encoding (opcional mas recomendado)
+chardet>=4.0.0
+
+# Logging avançado (opcional)
+colorlog>=6.0.0
+
+# Testes (desenvolvimento)
+pytest>=6.0.0
+pytest-cov>=2.10.0
+
+# Validação adicional (opcional)
+jsonschema>=3.2.0
+
+# Para compatibilidade com sistema existente
+# (caso use pandas para manipulação de dados)
+pandas>=1.3.0
+
+# Para geração de relatórios avançados (opcional)
+jinja2>=3.0.0
+
+# Para backup automático (opcional)
+python-decouple>=3.4

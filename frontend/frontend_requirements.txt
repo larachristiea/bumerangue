@@ -1,0 +1,17 @@
+# Dependências do Frontend - Motor de Notas
+# Instalação: pip install -r frontend_requirements.txt
+
+# Framework Web
+Flask>=2.3.0
+Werkzeug>=2.3.0
+
+# Processamento de arquivos
+PyPDF2>=3.0.0
+
+# Suporte adicional para o sistema existente
+lxml>=4.6.0
+python-dateutil>=2.8.0
+chardet>=4.0.0
+
+# Para desenvolvimento
+python-decouple>=3.4
